@@ -18,7 +18,7 @@ class BankAccount:
         print(self.balance)
 
     def __str__(self):
-        return f"{self.name} {str(self.balance)}"
+        return f"{self.name}'s account - Balance: {self.balance}"
 
 class SavingsAccount(BankAccount):
     def __init__(self, name, balance=0,interest_rate=0.06):
