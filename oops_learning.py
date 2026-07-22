@@ -20,6 +20,9 @@ class BankAccount:
     def __str__(self):
         return f"{self.name}'s account - Balance: {self.balance}"
 
+    def __repr__(self):
+        return f"BankAccount('{self.name}', {self.balance})"
+
 class SavingsAccount(BankAccount):
     def __init__(self, name, balance=0,interest_rate=0.06):
         super().__init__(name, balance)
@@ -38,10 +41,12 @@ if __name__ == '__main__':
 
     print("##################################################")
 
-    saving_account1 = SavingsAccount("Zara", 10000)
+    saving_account1 = SavingsAccount("Albina", 10000)
     saving_account1.pay_with_interest()
     saving_account1.print_info()
     print("##################################################")
     print(account1)
     print("##################################################")
     print(saving_account1)
+    accounts = [account1, saving_account1]
+    print(accounts)
