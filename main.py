@@ -1,19 +1,19 @@
 from fastapi import FastAPI, HTTPException
+from Connect_database import get_connection
+
 app = FastAPI()
 
 @app.get("/")
 def read_root():
     return {"message": "Hello, this is my first API"}
 
-import os
-import psycopg2
 from dotenv import load_dotenv
 
 load_dotenv()
 
 @app.get("/users")
 def get_users():
-    connection = psycopg2.connect(os.getenv("DATABASE_URL"))
+    connection = get_connection()
     cursor = connection.cursor()
     cursor.execute("SELECT id, name, email, balance FROM users;")
     rows = cursor.fetchall()
@@ -28,7 +28,7 @@ def get_users():
 
 @app.get("/users/{user_id}")
 def get_user(user_id: int):
-    connection = psycopg2.connect(os.getenv("DATABASE_URL"))
+    connection = get_connection()
     cursor = connection.cursor()
     cursor.execute("SELECT id, name, email, balance FROM users WHERE id = %s;", (user_id,))
     row = cursor.fetchone()
@@ -49,7 +49,7 @@ class UserCreate(BaseModel):
 
 @app.post("/users")
 def create_user(user: UserCreate):
-    connection = psycopg2.connect(os.getenv("DATABASE_URL"))
+    connection = get_connection()
     cursor = connection.cursor()
     cursor.execute(
         "INSERT INTO users (name, email, balance) VALUES (%s, %s, %s) RETURNING id;",
@@ -69,7 +69,7 @@ class UserUpdate(BaseModel):
 
 @app.put("/users/{user_id}")
 def update_user(user_id: int, user: UserUpdate):
-    connection = psycopg2.connect(os.getenv("DATABASE_URL"))
+    connection = get_connection()
     cursor = connection.cursor()
     cursor.execute(
         "UPDATE users SET name = %s, email = %s, balance = %s WHERE id = %s;",
@@ -88,7 +88,7 @@ def update_user(user_id: int, user: UserUpdate):
 
 @app.delete("/users/{user_id}")
 def delete_user(user_id: int):
-    connection = psycopg2.connect(os.getenv("DATABASE_URL"))
+    connection = get_connection()
     cursor = connection.cursor()
     cursor.execute("DELETE FROM users WHERE id = %s;", (user_id,))
     deleted_rows = cursor.rowcount
