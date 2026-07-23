@@ -1,6 +1,4 @@
 from fastapi import FastAPI, HTTPException
-from psycopg2._psycopg import cursor
-
 from Connect_database import get_connection
 
 app = FastAPI()
@@ -116,6 +114,8 @@ def get_orders():
     orders = []
     for row in rows:
         orders.append({"id" : row[0],"user_id" : row[1],"item" : row[2],"amount" : row[3]} )
+    if not orders:
+        raise HTTPException(status_code=404, detail="Orders not found")
     return orders
 
 @app.get("/orders/{order_id}")
