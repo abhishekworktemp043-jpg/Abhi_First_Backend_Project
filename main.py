@@ -104,7 +104,7 @@ def delete_user(user_id: int):
     return {"message": f"User {user_id} deleted"}
 
 @app.get("/orders")
-def get_order():
+def get_orders():
     connection = get_connection()
     cursor = connection.cursor()
     cursor.execute("SELECT id,user_id,item,amount FROM orders;")
@@ -116,7 +116,7 @@ def get_order():
     orders = []
     for row in rows:
         orders.append({"id" : row[0],"user_id" : row[1],"item" : row[2],"amount" : row[3]} )
-
+    return orders
 
 @app.get("/orders/{order_id}")
 def get_order(order_id: int):
