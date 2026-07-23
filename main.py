@@ -108,7 +108,7 @@ def get_orders():
     connection = get_connection()
     cursor = connection.cursor()
     cursor.execute("SELECT id,user_id,item,amount FROM orders;")
-    rows = cursor.FETCHALL()
+    rows = cursor.fetchall()
     cursor.close()
     connection.close()
     if rows is None:
