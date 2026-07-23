@@ -1,4 +1,6 @@
 from fastapi import FastAPI, HTTPException
+from psycopg2._psycopg import cursor
+
 from Connect_database import get_connection
 
 app = FastAPI()
@@ -100,3 +102,60 @@ def delete_user(user_id: int):
         raise HTTPException(status_code=404, detail="User not found")
 
     return {"message": f"User {user_id} deleted"}
+
+@app.get("/orders")
+def get_order():
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT id,user_id,item,amount FROM orders;")
+    rows = cursor.FETCHALL()
+    cursor.close()
+    connection.close()
+    if rows is None:
+        raise HTTPException(status_code=404, detail="Orders not found")
+    orders = []
+    for row in rows:
+        orders.append({"id" : row[0],"user_id" : row[1],"item" : row[2],"amount" : row[3]} )
+
+
+@app.get("/orders/{order_id}")
+def get_order(order_id: int):
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT id,user_id,item,amount FROM orders WHERE id = %s;", (order_id,))
+    row = cursor.fetchone()
+    cursor.close()
+    connection.close()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return {"id" : row[0],"user_id" : row[1],"item" : row[2],"amount" : row[3]}
+
+class CreateOrder(BaseModel):
+    user_id: int
+    item: str
+    amount: float
+@app.post("/orders")
+def create_order(order: CreateOrder):
+
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO orders (user_id,item,amount) VALUES (%s, %s, %s) RETURNING id;",
+                   (order.user_id, order.item, order.amount))
+    new_id = cursor.fetchone()[0]
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return {"id": new_id, "user_id": order.user_id, "item": order.item, "amount": order.amount}
+
+@app.delete("/orders/{order_id}")
+def delete_order(order_id: int):
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM orders WHERE id = %s;", (order_id,))
+    deleted_rows = cursor.rowcount
+    connection.commit()
+    cursor.close()
+    connection.close()
+    if deleted_rows == 0:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return {"message": f"Order {order_id} deleted"}
