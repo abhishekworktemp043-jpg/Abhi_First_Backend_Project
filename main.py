@@ -46,14 +46,18 @@ class UserCreate(BaseModel):
     name: str
     email: str
     balance: float = 0
+    password: str
 
 @app.post("/users")
 def create_user(user: UserCreate):
     connection = get_connection()
     cursor = connection.cursor()
+
+    hashed_pw = hash_password(user.password)
+
     cursor.execute(
-        "INSERT INTO users (name, email, balance) VALUES (%s, %s, %s) RETURNING id;",
-        (user.name, user.email, user.balance)
+        "INSERT INTO users (name, email, balance, hashed_password) VALUES (%s, %s, %s, %s) RETURNING id;",
+        (user.name, user.email, user.balance, hashed_pw)
     )
     new_id = cursor.fetchone()[0]
     connection.commit()
@@ -159,3 +163,13 @@ def delete_order(order_id: int):
     if deleted_rows == 0:
         raise HTTPException(status_code=404, detail="Order not found")
     return {"message": f"Order {order_id} deleted"}
+
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
